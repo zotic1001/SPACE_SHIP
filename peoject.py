@@ -3,7 +3,6 @@ import pygame
 import sys
 import random
 
-
 FPS = 60
 pygame.init()
 size = WIDTH, HEIGHT = 800, 600
@@ -36,10 +35,8 @@ def load_image(name, colorkey=None):
 def start_game(level=lvl_name):
     fon = pygame.transform.scale(load_image(level[0:-4] + ".jpg"), (WIDTH, HEIGHT))
     running = True
-    i = 0
-    pygame.time.set_timer(pygame.USEREVENT, 9000)
+    pygame.time.set_timer(pygame.USEREVENT, 2000)
     while running:
-        i += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -51,15 +48,15 @@ def start_game(level=lvl_name):
                 if event.key == pygame.K_SPACE:
                     bullet = Bullet(player.rect.x, player.rect.y, -1)
                     bullet.shoot()
-                    shooting_mob()
             if event.type == pygame.USEREVENT:
-                pass
-        shooting_mob()
-        all_sprites.update()
-        pygame.display.flip()
-        screen.blit(fon, (0, 0))
-        all_sprites.draw(screen)
+                shooting_mob()
 
+        screen.blit(fon, (0, 0))
+        all_sprites.update()
+        bullet_group.update()
+        all_sprites.draw(screen)
+        bullet_group.draw(screen)
+        pygame.display.flip()
         clock.tick(FPS)
 
 
@@ -78,6 +75,12 @@ def rules():
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+def shooting_mob():
+    shoot_mob = random.choice(enemy_group.sprites())
+    bullet = Bullet(shoot_mob.rect.x, shoot_mob.rect.y, 1)
+    bullet.shoot()
 
 
 def start_screen():
@@ -121,22 +124,19 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.centerx = x + 15
 
     def update(self):
-        print(self.vel)
         # убить, если он заходит за верхнюю часть экрана
         if self.rect.y < 0:
             self.kill()
         if self.rect.y > 600:
             self.kill()
-        if self.vel == -1:
+        if self.vel < 0:
             if not pygame.sprite.spritecollide(self, tiles_group, False):
-               self.rect.y += 3 * self.vel
+                self.rect.y += 3 * self.vel
             else:
-               self.kill()
-               pygame.sprite.spritecollide(self, tiles_group, False)[0].damage()
-        if self.vel == 1:
-            print(1212312312312223)
+                self.kill()
+                pygame.sprite.spritecollide(self, tiles_group, False)[0].damage()
+        if self.vel > 0:
             if not pygame.sprite.spritecollide(self, player_group, False):
-                print(1121112)
                 self.rect.y += 3 * self.vel
             else:
                 self.kill()
@@ -268,15 +268,8 @@ def generate_level(level):
     return new_player, x, y
 
 
-def shooting_mob():
-    shoot_mob = random.choice(enemy_group.sprites())
-    bullet = Bullet(shoot_mob.rect.x, shoot_mob.rect.y, 1)
-    bullet.shoot()
-
-
 player, level_x, level_y = generate_level(load_level(lvl_name))
 
 start_screen()
 menu()
-print(player_group)
 terminate()
