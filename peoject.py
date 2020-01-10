@@ -17,6 +17,7 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+anim_sprites = pygame.sprite.Group()
 
 
 def load_image(name, colorkey=None):
@@ -35,7 +36,7 @@ def load_image(name, colorkey=None):
 def start_game(level=lvl_name):
     fon = pygame.transform.scale(load_image(level[0:-4] + ".jpg"), (WIDTH, HEIGHT))
     running = True
-    pygame.time.set_timer(pygame.USEREVENT, 2000)
+    pygame.time.set_timer(pygame.USEREVENT, 1000)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -50,12 +51,14 @@ def start_game(level=lvl_name):
                     bullet.shoot()
             if event.type == pygame.USEREVENT:
                 shooting_mob()
+                anim_sprites.remove(*anim_sprites.sprites())
+
 
         screen.blit(fon, (0, 0))
         all_sprites.update()
-        bullet_group.update()
         all_sprites.draw(screen)
-        bullet_group.draw(screen)
+        anim_sprites.update()
+        anim_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -148,6 +151,31 @@ class Bullet(pygame.sprite.Sprite):
             all_sprites.add(bullet)
             bullet_group.add(bullet)
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(anim_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+def dead_anim(x, y):
+    dead = AnimatedSprite(load_image("dead.png", pygame.color.Color("white")), 3, 4, x, y)
+
 
 def menu():
     menu_text = ["           Меню",
@@ -221,6 +249,7 @@ class Tile(pygame.sprite.Sprite):
     def damage(self):
         self.hp -= 1
         if self.hp == 0:
+            dead_anim(self.rect.x, self.rect.y)
             self.kill()
 
 
