@@ -18,6 +18,7 @@ tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 anim_sprites = pygame.sprite.Group()
+player_bullets = pygame.sprite.Group()
 
 
 def load_image(name, colorkey=None):
@@ -43,17 +44,19 @@ def start_game(level=lvl_name):
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    player.rect.x += STEP
+                    if player.rect.x < WIDTH - tile_width + 5:
+                        player.rect.x += STEP
                 if event.key == pygame.K_LEFT:
-                    player.rect.x -= STEP
+                    if player.rect.x > 0:
+                        player.rect.x -= STEP
                 if event.key == pygame.K_SPACE:
                     bullet = Bullet(player.rect.x, player.rect.y, -1)
                     bullet.shoot()
-                    player.damage()
             if event.type == pygame.USEREVENT:
                 shooting_mob()
                 anim_sprites.remove(*anim_sprites.sprites())
-
+            if len(enemy_group) == 0:
+                win()
 
         screen.blit(fon, (0, 0))
         all_sprites.update()
@@ -147,10 +150,13 @@ class Bullet(pygame.sprite.Sprite):
                 pygame.sprite.spritecollide(self, player_group, False)[0].damage()
 
     def shoot(self):
-        if len(bullet_group) < 5:
+        if len(player_bullets) < 3:
             bullet = Bullet(self.rect.x, self.rect.y, self.vel)
             all_sprites.add(bullet)
             bullet_group.add(bullet)
+            if self.vel < 0:
+                player_bullets.add(bullet)
+
 
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
@@ -173,6 +179,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
+
 
 def dead_anim(x, y):
     dead = AnimatedSprite(load_image("dead.png", pygame.color.Color("white")), 3, 4, x, y)
@@ -217,7 +224,8 @@ def menu():
 
 
 tile_images = {'wall1': load_image('wall1.jpg'), 'wall2': load_image('wall2.jpg'), 'wall3': load_image('wall3.jpg'),
-               "mob1": load_image("mob1.png"), "mob2": load_image("mob2.png"), "space": load_image("space.png")}
+               "mob1": load_image("mob1.png", (255, 255, 255)), "mob2": load_image("mob2.png", (255, 255, 255)),
+               "space": load_image("space.png")}
 player_image = load_image(ship_name, (255, 255, 255))
 tile_width = tile_height = 50
 
@@ -361,8 +369,17 @@ def restart_game(lvl_name=lvl_name):
     tiles_group.remove(*tiles_group.sprites())
     player_group.remove(*player_group.sprites())
     bullet_group.remove(*bullet_group.sprites())
+    player_bullets.remove(*player_bullets.sprites())
     player, level_x, level_y = generate_level(load_level(lvl_name))
     start_game()
+
+
+def win():
+    global lvl_name
+    if int(lvl_name[3]) < 4:
+        lvl_name[3] = str(int(lvl_name[3]) + 1)
+        print(lvl_name)
+        restart_game(lvl_name)
 
 
 player, level_x, level_y = generate_level(load_level(lvl_name))
