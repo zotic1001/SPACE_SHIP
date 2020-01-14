@@ -68,7 +68,7 @@ def level_change():
 def ship_change():
     global ship_name, player_image
     intro_text = ["     Выбрать корабль",
-                "",
+                  "",
                   "Корабль 1",
                   "Корабль 2",
                   "Корабль 3",
@@ -114,8 +114,38 @@ def ship_change():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 def rules():
-    print("Правила")
+    intro_text = ["Правила",
+                  "1.Ваша цель убить всех врагов на уровне",
+                  "2.Перемещаться с помощью стрелок",
+                  "3. SPACE - выстрел",
+                  "4. Если враги попадут по вам 3 раза ,то вы проиграете",
+                  "В главное меню"]
+
+    fon = pygame.transform.scale(load_image('menu.jpg'), (800, 600))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 40)
+    text_coord = 100
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('purple'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if event.pos[0] in range(0, 250) and event.pos[1] in range(280, 350):
+                        menu()
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def terminate():
@@ -234,8 +264,8 @@ def menu():
 
 
 tile_images = {'wall1': load_image('wall1.jpg'), 'wall2': load_image('wall2.jpg'), 'wall3': load_image('wall3.jpg'),
-               "mob1": load_image("mob1.png", -1), "mob2": load_image("mob2.png", -1) ,
-              "space": load_image("space.png")}
+               "mob1": load_image("mob1.png", -1), "mob2": load_image("mob2.png", -1),
+               "space": load_image("space.png")}
 player_image = load_image(ship_name, (255, 255, 255))
 tile_width = tile_height = 50
 
