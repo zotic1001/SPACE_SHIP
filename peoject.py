@@ -48,7 +48,7 @@ def start_game(level=lvl_name):
                 if event.key == pygame.K_SPACE:
                     bullet = Bullet(player.rect.x, player.rect.y, -1)
                     bullet.shoot()
-                    player.damage()
+                    print(ship_name)
             if event.type == pygame.USEREVENT:
                 shooting_mob()
 
@@ -66,8 +66,53 @@ def level_change():
 
 
 def ship_change():
-    print("Выбор корабля")
+    global ship_name, player_image
+    intro_text = ["     Выбрать корабль",
+                "",
+                  "Корабль 1",
+                  "Корабль 2",
+                  "Корабль 3",
+                  "В главное меню"]
 
+    fon = pygame.transform.scale(load_image('menu.jpg'), (800, 600))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 40)
+    text_coord = 100
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('purple'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+        ship1 = load_image('ship1.png')
+        ship1r = ship1.get_rect(bottomright=(400, 200))
+        ship2 = load_image('ship2.png')
+        ship2r = ship2.get_rect(bottomright=(400, 280))
+        ship3 = load_image('ship1.png')
+        ship3r = ship3.get_rect(bottomright=(400, 330))
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if event.pos[0] in range(0, 200) and event.pos[1] in range(180, 220):
+                        ship_name = "ship1.png"
+                    if event.pos[0] in range(0, 250) and event.pos[1] in range(230, 260):
+                        ship_name = "ship2.png"
+                    if event.pos[0] in range(0, 250) and event.pos[1] in range(270, 305):
+                        ship_name = "ship3.png"
+                    if event.pos[0] in range(0, 250) and event.pos[1] in range(310, 360):
+                        menu()
+        player_image = load_image(ship_name, (255, 255, 255))
+        screen.blit(ship2, ship2r)
+        screen.blit(ship1, ship1r)
+        screen.blit(ship3, ship3r)
+        pygame.display.flip()
+        clock.tick(FPS)
 
 def rules():
     print("Правила")
@@ -189,7 +234,8 @@ def menu():
 
 
 tile_images = {'wall1': load_image('wall1.jpg'), 'wall2': load_image('wall2.jpg'), 'wall3': load_image('wall3.jpg'),
-               "mob1": load_image("mob1.png"), "mob2": load_image("mob2.png"), "space": load_image("space.png")}
+               "mob1": load_image("mob1.png", -1), "mob2": load_image("mob2.png", -1) ,
+              "space": load_image("space.png")}
 player_image = load_image(ship_name, (255, 255, 255))
 tile_width = tile_height = 50
 
@@ -233,7 +279,6 @@ def game_over_menu():
         screen.blit(string_rendered, intro_rect)
 
     while True:
-        mouse1 = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
