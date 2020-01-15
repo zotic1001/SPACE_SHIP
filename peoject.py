@@ -3,7 +3,6 @@ import pygame
 import sys
 import random
 
-levels = 3
 FPS = 60
 pygame.init()
 size = WIDTH, HEIGHT = 800, 600
@@ -11,15 +10,13 @@ STEP = 10
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 player = None
-lvl_name = "lvl2.txt"
+lvl_name = "lvl1.txt"
 ship_name = "ship2.png"
 
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
-anim_sprites = pygame.sprite.Group()
-player_bullets = pygame.sprite.Group()
 
 
 def load_image(name, colorkey=None):
@@ -36,78 +33,36 @@ def load_image(name, colorkey=None):
 
 
 def start_game(level=lvl_name):
-    print(lvl_name)
-    fon = pygame.transform.scale(load_image(lvl_name[0:4] + '.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image(level[0:-4] + ".jpg"), (WIDTH, HEIGHT))
     running = True
-    pygame.time.set_timer(pygame.USEREVENT, 1000)
+    pygame.time.set_timer(pygame.USEREVENT, 2000)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    if player.rect.x < WIDTH - tile_width + 5:
-                        player.rect.x += STEP
+                    player.rect.x += STEP
                 if event.key == pygame.K_LEFT:
-                    if player.rect.x > 0:
-                        player.rect.x -= STEP
+                    player.rect.x -= STEP
                 if event.key == pygame.K_SPACE:
                     bullet = Bullet(player.rect.x, player.rect.y, -1)
                     bullet.shoot()
+                    player.damage()
             if event.type == pygame.USEREVENT:
                 shooting_mob()
-                anim_sprites.remove(*anim_sprites.sprites())
-            if len(enemy_group) == 0:
-                win_menu()
 
         screen.blit(fon, (0, 0))
         all_sprites.update()
+        bullet_group.update()
         all_sprites.draw(screen)
-        anim_sprites.update()
-        anim_sprites.draw(screen)
+        bullet_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
 
 def level_change():
-    global lvl_name
-    menu_text = ["",
-                 '',
-                 "Уровень 1",
-                 "Уровень 2",
-                 "Уровень 3",
-                 "В главное меню"]
-    fon = pygame.transform.scale(load_image('menu.jpg'), (800, 600))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 40)
-    text_coord = 100
-    for line in menu_text:
-        string_rendered = font.render(line, 1, pygame.Color('purple'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if event.pos[0] in range(0, 200) and event.pos[1] in range(180, 220):
-                        lvl_name = "lvl1.txt"
-                        print(lvl_name)
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(230, 260):
-                        lvl_name = "lvl2.txt"
-                        print(lvl_name)
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(270, 305):
-                        lvl_name = "lvl3.txt"
-                        print(lvl_name)
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(310, 360):
-                        menu()
-            pygame.display.flip()
+    print('Выбор уровня')
 
 
 def ship_change():
@@ -189,39 +144,10 @@ class Bullet(pygame.sprite.Sprite):
                 pygame.sprite.spritecollide(self, player_group, False)[0].damage()
 
     def shoot(self):
-        if len(player_bullets) < 3:
+        if len(bullet_group) < 5:
             bullet = Bullet(self.rect.x, self.rect.y, self.vel)
             all_sprites.add(bullet)
             bullet_group.add(bullet)
-            if self.vel < 0:
-                player_bullets.add(bullet)
-
-
-class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y):
-        super().__init__(anim_sprites)
-        self.frames = []
-        self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
-
-    def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
-
-    def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
-
-
-def dead_anim(x, y):
-    dead = AnimatedSprite(load_image("dead.png", pygame.color.Color("white")), 3, 4, x, y)
 
 
 def menu():
@@ -252,7 +178,7 @@ def menu():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if event.pos[0] in range(0, 200) and event.pos[1] in range(180, 220):
-                        restart_game()
+                        start_game()
                     if event.pos[0] in range(0, 250) and event.pos[1] in range(230, 260):
                         level_change()
                     if event.pos[0] in range(0, 250) and event.pos[1] in range(270, 305):
@@ -263,8 +189,7 @@ def menu():
 
 
 tile_images = {'wall1': load_image('wall1.jpg'), 'wall2': load_image('wall2.jpg'), 'wall3': load_image('wall3.jpg'),
-               "mob1": load_image("mob1.png", (255, 255, 255)), "mob2": load_image("mob2.png", (255, 255, 255)),
-               "space": load_image("space.png")}
+               "mob1": load_image("mob1.png"), "mob2": load_image("mob2.png"), "space": load_image("space.png")}
 player_image = load_image(ship_name, (255, 255, 255))
 tile_width = tile_height = 50
 
@@ -308,10 +233,12 @@ def game_over_menu():
         screen.blit(string_rendered, intro_rect)
 
     while True:
+        mouse1 = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                print(event.pos)
                 if event.button == 1:
                     if event.pos[0] in range(0, 250) and event.pos[1] in range(180, 220):
                         restart_game()
@@ -352,7 +279,6 @@ class Tile(pygame.sprite.Sprite):
     def damage(self):
         self.hp -= 1
         if self.hp == 0:
-            dead_anim(self.rect.x, self.rect.y)
             self.kill()
 
 
@@ -400,98 +326,14 @@ def generate_level(level):
     return new_player, x, y
 
 
-def restart_game(lvlname=lvl_name):
+def restart_game(lvl_name=lvl_name):
     global player, level_x, level_y
     all_sprites.remove(*all_sprites.sprites())
     tiles_group.remove(*tiles_group.sprites())
     player_group.remove(*player_group.sprites())
     bullet_group.remove(*bullet_group.sprites())
-    player_bullets.remove(*player_bullets.sprites())
     player, level_x, level_y = generate_level(load_level(lvl_name))
-    start_game(lvlname)
-
-
-def win_menu():
-    menu_text = ["Уровень пройден",
-                 "",
-                 "Следующий уровень",
-                 "Выбрать уровень",
-                 "Выбрать корабль",
-                 "В главное меню"]
-
-    fon = pygame.transform.scale(load_image('menu.jpg'), (800, 600))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 40)
-    text_coord = 100
-
-    for line in menu_text:
-        string_rendered = font.render(line, 1, pygame.Color('purple'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(180, 220):
-                        win()
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(230, 260):
-                        level_change()
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(270, 305):
-                        ship_change()
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(310, 360):
-                        menu()
-        pygame.display.flip()
-        clock.tick(FPS)
-
-
-def win_all():
-    menu_text = ["",
-                 "",
-                 "В главное меню",
-                 "",
-                 "",
-                 ""]
-
-    fon = pygame.transform.scale(load_image('win.jpg'), (800, 600))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 40)
-    text_coord = 100
-
-    for line in menu_text:
-        string_rendered = font.render(line, 1, pygame.Color('purple'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if event.pos[0] in range(0, 250) and event.pos[1] in range(180, 210):
-                        menu()
-        pygame.display.flip()
-        clock.tick(FPS)
-
-
-def win():
-    global lvl_name, levels
-    if int(lvl_name[3]) < levels:
-        lvl_name = 'lvl' + str(int(lvl_name[3]) + 1) + '.txt'
-        restart_game(lvl_name)
-    else:
-        win_all()
+    start_game()
 
 
 player, level_x, level_y = generate_level(load_level(lvl_name))
