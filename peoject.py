@@ -22,7 +22,6 @@ anim_sprites = pygame.sprite.Group()
 enemybullet_group = pygame.sprite.Group()
 point = 0
 
-
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname)
@@ -38,6 +37,8 @@ def load_image(name, colorkey=None):
 
 def start_game():
     pygame.mouse.set_visible(False)
+    pygame.mixer.music.load('data/Deadlocked-Full.wav')
+    pygame.mixer.music.play(-1)
     global lvl_name, point
     text = "Счёт:" + str(point) + "                                                           " \
                                   "                                 Жизни: " + str(player_group.sprites()[0].hp)
@@ -65,12 +66,11 @@ def start_game():
                 if event.key == pygame.K_SPACE:
                     bullet = Bullet(player.rect.x, player.rect.y, -1)
                     bullet.shoot()
-                if event.key == pygame.K_1:
-                    win_menu()
             elif event.type == pygame.USEREVENT:
                 shooting_mob()
                 anim_sprites.remove(*anim_sprites.sprites())
         if len(enemy_group) == 0:
+            pygame.mixer.music.stop()
             win_menu()
         screen.blit(fon, (0, 0))
         screen.blit(string_rendered, intro_rect)
