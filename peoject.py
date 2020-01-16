@@ -22,6 +22,7 @@ anim_sprites = pygame.sprite.Group()
 enemybullet_group = pygame.sprite.Group()
 point = 0
 
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname)
