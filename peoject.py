@@ -37,12 +37,13 @@ def load_image(name, colorkey=None):
 
 
 def start_game():
+    pygame.mouse.set_visible(False)
     global lvl_name, point
     text = "Счёт:" + str(point) + "                                                           " \
                                   "                                 Жизни: " + str(player_group.sprites()[0].hp)
     fon = pygame.transform.scale(load_image(lvl_name[0:-4] + ".jpg"), (WIDTH, HEIGHT))
     running = True
-    pygame.time.set_timer(pygame.USEREVENT, 1000)
+    pygame.time.set_timer(pygame.USEREVENT, 2000)
     font = pygame.font.Font(None, 30)
     string_rendered = font.render(text, 1, pygame.Color('purple'))
     intro_rect = string_rendered.get_rect()
@@ -64,6 +65,8 @@ def start_game():
                 if event.key == pygame.K_SPACE:
                     bullet = Bullet(player.rect.x, player.rect.y, -1)
                     bullet.shoot()
+                if event.key == pygame.K_1:
+                    win_menu()
             elif event.type == pygame.USEREVENT:
                 shooting_mob()
                 anim_sprites.remove(*anim_sprites.sprites())
@@ -108,6 +111,7 @@ def dead_anim(x, y):
 
 def level_change():
     global lvl_name
+    pygame.mouse.set_visible(True)
     menu_text = ["Уровень 1",
                  'Уровень 2',
                  "Уровень 3",
@@ -149,6 +153,7 @@ def level_change():
 
 
 def ship_change():
+    pygame.mouse.set_visible(True)
     global ship_name, player_image
     intro_text = ["     Выбрать корабль",
                   "",
@@ -199,6 +204,7 @@ def ship_change():
 
 
 def rules():
+    pygame.mouse.set_visible(True)
     intro_text = ["Правила",
                   "1.Ваша цель убить всех врагов на уровне",
                   "2.Перемещаться с помощью стрелок",
@@ -284,6 +290,7 @@ def shooting_mob():
 
 
 def start_screen():
+    pygame.mouse.set_visible(False)
     intro_text = ["",
                   "",
                   "",
@@ -355,6 +362,7 @@ class Bullet(pygame.sprite.Sprite):
 
 
 def menu():
+    pygame.mouse.set_visible(True)
     menu_text = ["           Меню",
                  "",
                  "Начать игру",
@@ -415,6 +423,7 @@ def game_over():
 
 
 def game_over_menu():
+    pygame.mouse.set_visible(True)
     menu_text = ["Игра окончена",
                  "",
                  "Начать игру сначала",
@@ -490,7 +499,6 @@ class Tile(pygame.sprite.Sprite):
                 dead_anim(self.rect.x, self.rect.y)
                 self.kill()
             else:
-                print(1)
                 dead_anim(self.rect.x, self.rect.y)
                 self.kill()
 
@@ -500,7 +508,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
-        self.hp = 3
+        self.hp = 5
 
     def damage(self):
         self.hp -= 1
@@ -540,6 +548,7 @@ def generate_level(level):
 
 
 def win_menu():
+    pygame.mouse.set_visible(True)
     menu_text = ["Уровень пройден",
                  "",
                  "Следующий уровень",
@@ -580,6 +589,7 @@ def win_menu():
 
 
 def win_all():
+    pygame.mouse.set_visible(True)
     menu_text = ["",
                  "",
                  "В главное меню",
@@ -617,7 +627,7 @@ def win():
     global lvl_name, levels
     if int(lvl_name[3]) < levels:
         lvl_name = 'lvl' + str(int(lvl_name[3]) + 1) + '.txt'
-        restart_game(lvl_name)
+        restart_game()
     else:
         win_all()
 
